@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // Look for files in current directory.
+    "baseUrl": ".",
+  },
+}
