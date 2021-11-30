@@ -20,7 +20,7 @@ export class QueryResource<T> {
   /**
    * Returns query result; suspends when data is loading; throws exception when there are errors.
    */
-  read(): T {
+  read = (): T => {
     // Suspend if loading
     if (this.state.loading) {
       // MUST SUSPEND!
@@ -48,23 +48,23 @@ export class QueryResource<T> {
     }
 
     return this.state.data;
-  }
+  };
 
   /**
    * Returns current query error (if any).
    * Does not suspend!
    */
-  error(): ApolloError | undefined {
+  error = (): ApolloError | undefined => {
     return (
       this.state.networkError ??
       new ApolloError({ graphQLErrors: this.state.graphQLErrors })
     );
-  }
+  };
 
   /**
    * Returns true if query is loading. Useful when you don't want to suspend.
    */
-  isLoading(): boolean {
+  isLoading = (): boolean => {
     return this.state.loading;
-  }
+  };
 }
