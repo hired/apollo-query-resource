@@ -6,6 +6,7 @@ import {
   TypedDocumentNode,
   useApolloClient,
 } from "@apollo/client";
+import objectHash from "object-hash";
 import { getOperationName } from "@apollo/client/utilities";
 import { equal } from "@wry/equality";
 
@@ -47,12 +48,20 @@ export function useObservableQuery<
   // TODO: for simplicity we are assuming that it will never change
   const client = useApolloClient();
 
-  // Use operation name as ID unless it is passed explicitly.
-  key ??= getOperationName(query) ?? undefined;
-
-  // ID is manadatory because we use it as a global cache key.
   if (!key) {
-    throw new Error("Can't get unique ID from the query; pass ID explicitly");
+    const operationName = getOperationName(query);
+
+    // We don't support anonymous queries without an explicit key.
+    if (!operationName) {
+      throw new Error(
+        "Can't get operation name from the query; pass `key` explicitly"
+      );
+    }
+
+    // When key is not explicitly provided, we calculate a using a query operation name + current variables.
+    // This means that, if variables change, we will re-create the whole ObservableQuery, which could be
+    // expensive. It is recommended to pass the unique key.
+    key = objectHash({ operationName, variables });
   }
 
   // Try to get cached observable first
@@ -68,10 +77,11 @@ export function useObservableQuery<
     return newObservableQuery;
   }
 
-  // We don't support dynamic queries because it is helps us to detect duplicate IDs.
+  // XXX: We don't support dynamic queries because it helps us detect duplicate keys.
+  // We probably should maintain a separate cache to do this.
   if (!equal(cachedObservableQuery.options.query, query)) {
     throw new Error(
-      "useObservableQuery: Query has changed since last render. Check for duplicate IDs. "
+      "useObservableQuery: Query has changed since last render. Check for duplicate keys. "
     );
   }
 
