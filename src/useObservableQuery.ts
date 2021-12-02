@@ -13,7 +13,7 @@ export interface ObservableQueryOptions<
   TVariables extends OperationVariables = OperationVariables
 > {
   /** Unique identifier of the query. When null query operation name will be used. */
-  id?: string;
+  key?: string;
 
   /** GraphQL query variables. */
   variables?: TVariables;
@@ -37,7 +37,7 @@ export function useObservableQuery<
   TVariables extends OperationVariables = OperationVariables
 >(
   query: DocumentNode | TypedDocumentNode<TData, TVariables>,
-  { id, variables }: ObservableQueryOptions<TVariables>
+  { key, variables }: ObservableQueryOptions<TVariables>
 ): ObservableQuery<TData, TVariables> {
   // Get global cache for ObservableQuery.
   // IMPORTANT! This is our only way to share data between hook re-renders when hook is suspended.
@@ -48,22 +48,22 @@ export function useObservableQuery<
   const client = useApolloClient();
 
   // Use operation name as ID unless it is passed explicitly.
-  id ??= getOperationName(query) ?? undefined;
+  key ??= getOperationName(query) ?? undefined;
 
   // ID is manadatory because we use it as a global cache key.
-  if (!id) {
+  if (!key) {
     throw new Error("Can't get unique ID from the query; pass ID explicitly");
   }
 
   // Try to get cached observable first
-  const cachedObservableQuery = cache.get(id) as
+  const cachedObservableQuery = cache.get(key) as
     | ObservableQuery<TData, TVariables>
     | undefined;
 
   if (!cachedObservableQuery) {
     // Query is not in the cache; create a new one
     const newObservableQuery = client.watchQuery({ query, variables });
-    cache.set(id, newObservableQuery);
+    cache.set(key, newObservableQuery);
 
     return newObservableQuery;
   }
