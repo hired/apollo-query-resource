@@ -82,7 +82,7 @@ export function useObservableQuery<
     !equal(cachedObservableQuery.options.variables, variables)
   ) {
     // Reset query with new options
-    void cachedObservableQuery.reobserve(variables);
+    void cachedObservableQuery.reobserve({ variables });
   }
 
   return cachedObservableQuery;
